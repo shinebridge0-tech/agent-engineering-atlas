@@ -1,0 +1,165 @@
+{
+  "schema_version": "1.0",
+  "frozen_at": "2026-10-10",
+  "content_sha256": "55773a52ee9d28394054f2ae5b958d2b007819f8e7102799058fe38c1599a86b",
+  "scenarios": [
+    {
+      "id": "answer-recovery-key",
+      "kind": "answerable",
+      "question": "稳定业务幂等键 工单",
+      "cluster": "recovery",
+      "constraints": {
+        "idempotency": "yes"
+      },
+      "expected": [
+        "stable-idempotency"
+      ],
+      "basis": "接收方支持稳定幂等契约且审批明确，框架中立方案"
+    },
+    {
+      "id": "answer-recovery-reconcile",
+      "kind": "answerable",
+      "question": "无幂等 工单 核对",
+      "cluster": "recovery",
+      "constraints": {
+        "idempotency": "no"
+      },
+      "expected": [
+        "reconcile-before-retry"
+      ],
+      "basis": "明确不支持幂等时停止盲重试，核对队列方案"
+    },
+    {
+      "id": "answer-retrieval-keyword",
+      "kind": "answerable",
+      "question": "关键词 检索 bm25",
+      "cluster": "retrieval",
+      "constraints": {
+        "data_external": "no"
+      },
+      "expected": [
+        "keyword-retrieval"
+      ],
+      "basis": "本地关键词方案不依赖远端模型"
+    },
+    {
+      "id": "answer-retrieval-hybrid",
+      "kind": "answerable",
+      "question": "混合检索 fusion",
+      "cluster": "retrieval",
+      "constraints": {
+        "data_external": "no"
+      },
+      "expected": [
+        "hybrid-retrieval"
+      ],
+      "basis": "允许新增本地embedding，融合是建议路径而非已运行组件"
+    },
+    {
+      "id": "answer-safety-allowlist",
+      "kind": "answerable",
+      "question": "工具 授权 参数",
+      "cluster": "safety",
+      "constraints": {},
+      "expected": [
+        "tool-allowlist"
+      ],
+      "basis": "工具执行前白名单和参数门禁"
+    },
+    {
+      "id": "answer-safety-budget",
+      "kind": "answerable",
+      "question": "工具 预算 重试",
+      "cluster": "safety",
+      "constraints": {},
+      "expected": [
+        "bounded-tool-retry"
+      ],
+      "basis": "执行层总预算与终止策略"
+    },
+    {
+      "id": "conflict-key",
+      "kind": "hard_conflict",
+      "question": "工单 幂等",
+      "cluster": "recovery",
+      "constraints": {
+        "idempotency": "no"
+      },
+      "expected": [
+        "stable-idempotency"
+      ],
+      "basis": "方案要求幂等但输入明确不支持"
+    },
+    {
+      "id": "conflict-component",
+      "kind": "hard_conflict",
+      "question": "混合检索 fusion",
+      "cluster": "retrieval",
+      "constraints": {
+        "forbidden_components": [
+          "embedding"
+        ]
+      },
+      "expected": [
+        "hybrid-retrieval"
+      ],
+      "basis": "禁止组件不能被检索得分抵消"
+    },
+    {
+      "id": "conflict-approval",
+      "kind": "hard_conflict",
+      "question": "工具 审批 批准",
+      "cluster": "safety",
+      "constraints": {
+        "approval": "no"
+      },
+      "expected": [
+        "bound-approval"
+      ],
+      "basis": "要求审批方案与不允许审批冲突"
+    },
+    {
+      "id": "insufficient-key",
+      "kind": "insufficient",
+      "question": "工单 恢复",
+      "cluster": "recovery",
+      "constraints": {
+        "idempotency": "unknown",
+        "approval": "unknown"
+      },
+      "expected": [
+        "stable-idempotency"
+      ],
+      "basis": "关键安全条件未知不得兼容"
+    },
+    {
+      "id": "insufficient-version",
+      "kind": "insufficient",
+      "question": "审批 检查点 恢复",
+      "cluster": "recovery",
+      "constraints": {
+        "framework": "LangGraph",
+        "framework_version": "unknown",
+        "idempotency": "yes",
+        "forbidden_components": [
+          "sqlite"
+        ]
+      },
+      "expected": [
+        "approval-before-effect",
+        "session-checkpoint"
+      ],
+      "basis": "剩余框架方案适用版本没有验证证据"
+    },
+    {
+      "id": "insufficient-corpus",
+      "kind": "insufficient",
+      "question": "稀土矿藏地层采样",
+      "cluster": "all",
+      "constraints": {},
+      "expected": [],
+      "basis": "超出Agent问题簇无匹配，不编造方案"
+    }
+  ],
+  "limits": "自建12题开发回归；非盲测、非行业基准，未进行模型对照。"
+}
