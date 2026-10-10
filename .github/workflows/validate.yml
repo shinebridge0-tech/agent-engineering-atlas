@@ -39,6 +39,7 @@ jobs:
       - run: |
           python3 -m venv .venv
           .venv/bin/python -m pip install -r requirements.lock.txt
+          mkdir -p .local
           .venv/bin/python -m pytest -q
           .venv/bin/python -m ruff check backend tests scripts experiments
           cd web
